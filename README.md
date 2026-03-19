@@ -1,6 +1,6 @@
 # hello-express
 
-A project representing my latest work bridging embedded hardware and a browser client over a custom binary protocol under real networking constraints.
+A side project bridging Elegoo Smart Car V4 and a browser client over TCP and WebSocket.
 
 
 *Note: Changed Master Slam Files included in this repo*
