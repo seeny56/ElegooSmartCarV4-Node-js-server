@@ -2,7 +2,6 @@
 
 A project representing my latest work bridging embedded hardware and a browser client over a custom binary protocol under real networking constraints.
 
-![Robot control architecture](debug_capture.jpg)
 
 ## What It Does
 
