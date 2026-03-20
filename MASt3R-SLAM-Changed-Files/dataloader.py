@@ -249,7 +249,7 @@ class NodeJSWebSocketCamera(MonocularDataset):
         self.rgb_files = ["live_stream"] 
         self.timestamps = [] 
 
-        self.ws_thread = threading.Thread(target=self._run_socket, daemon=True)
+        self.ws_thread = threading.Thread(target=self._run_socket, daemon=True) # run web socket on background thread
         self.ws_thread.start()
         
     def _run_socket(self):
@@ -266,6 +266,7 @@ class NodeJSWebSocketCamera(MonocularDataset):
     def __len__(self):
         return 999999
 
+    #override read_img to manually crop vga image to 512x512
     def read_img(self, idx):
         while self.latest_frame is None:
             time.sleep(0.01)
@@ -282,14 +283,15 @@ class NodeJSWebSocketCamera(MonocularDataset):
         self.timestamps.append(self.count / 30.0)
         self.count += 1
         return img
-
+    #i forgot why this is here i think; it was giving errors originally before i just cropped the image
     def get_image(self, idx):
         # Let mast3r handle resizing naturally — don't force it
         img = self.read_img(idx)
         return img.astype(self.dtype) / 255.0
 
+    #current configs expected a 512x512 image but web server sends vga 640x480 so we need to crop
     def get_img_shape(self):
-        # Block until we have a real frame to measure
+        # Block until we have a real frame to measure; for startup if web server isn't on
         while self.latest_frame is None:
             time.sleep(0.1)
         
