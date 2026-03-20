@@ -12,7 +12,7 @@ export default class VideoServer {
     constructor() {
 
         //can combine controller and browser camera feed into one web socket server
-        //just didn't feel like writing bi directional communication because needed clear separation of concerns
+        //just didn't feel like writing same socket bi directional communication because needed clear separation of concerns
 
         const wss = new WebSocketServer({ port: 41236 }); // browser live feed
         const slamWss = new WebSocketServer({ port: 3002 }); // slam live feed
@@ -123,14 +123,18 @@ export default class VideoServer {
             let buf = Buffer.alloc(0);
 
             socket.on('data', (data) => {
+                //add new data to buffer
                 buf = Buffer.concat([buf, data]);
 
                 while (true) {
+                    //make sure we atleast have header_sized buffer
                     if (buf.length < HEADER_SIZE) break;
 
                     const magic = buf.readUInt32LE(0);
                     if (magic !== MAGIC) {
+                        //does buffer contain magic number
                         const next = buf.indexOf(Buffer.from([0xEF, 0xBE, 0xAD, 0xDE]), 1);
+                        //if malformed just discard buffer
                         buf = next === -1 ? Buffer.alloc(0) : buf.subarray(next);
                         continue;
                     }
@@ -139,10 +143,13 @@ export default class VideoServer {
                     const timestamp = buf.readUInt32LE(8);
                     const dataLen = buf.readUInt32LE(12);
 
+                    //wait until all bytes of packet arrive
                     if (buf.length < HEADER_SIZE + dataLen) break;
 
                     const jpeg = buf.subarray(HEADER_SIZE, HEADER_SIZE + dataLen);
                    // console.log(`[Frame] ${frameIndex} | ${timestamp}ms | ${dataLen} bytes`);
+
+                    //broadcast jpeg to all listeners no data framing needed since websocket does that automatically
                     broadcast(jpeg);
 
                     buf = buf.subarray(HEADER_SIZE + dataLen);
